@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// Client wraps the gRPC client connection
+// Client represents a gRPC client for the daemon
 type Client struct {
 	conn   *grpc.ClientConn
 	client pb.CommandExecutorClient
@@ -50,29 +50,6 @@ func (c *Client) Execute(ctx context.Context, command string, args []string, tim
 	}
 
 	return resp, nil
-}
-
-// TestConnection performs a simple connectivity test
-func (c *Client) TestConnection(ctx context.Context) error {
-	// Try a simple execute call with an empty command to test connectivity
-	// The daemon will reject it, but we can verify the connection works
-	req := &pb.ExecuteRequest{
-		Command: "",
-		Args:    []string{},
-		Timeout: 1,
-	}
-
-	_, err := c.client.Execute(ctx, req)
-	// We expect an application-level error (command not specified),
-	// but a gRPC transport error indicates connection issues
-	if err != nil {
-		// Check if it's a gRPC error (connection issue)
-		// vs application error (which means connection is OK)
-		return fmt.Errorf("connection test failed: %w", err)
-	}
-
-	// If we get here, connection is working
-	return nil
 }
 
 // Close closes the gRPC connection

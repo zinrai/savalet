@@ -39,15 +39,7 @@ func (s *Server) Start() error {
 		log.Printf("API server will start, but requests will fail until daemon is available")
 		// Don't fail here, allow API to start
 	} else {
-		// Test connection
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		err := grpcClient.TestConnection(ctx)
-		cancel()
-		if err != nil {
-			log.Printf("WARNING: Daemon connection test failed: %v", err)
-		} else {
-			log.Printf("Successfully connected to daemon at %s", s.config.SocketPath)
-		}
+		log.Printf("Successfully connected to daemon at %s", s.config.SocketPath)
 		s.grpcClient = grpcClient
 	}
 
@@ -143,17 +135,6 @@ func (s *Server) readyHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		s.grpcClient = grpcClient
-	}
-
-	// Test daemon connection
-	ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
-	defer cancel()
-
-	err := s.grpcClient.TestConnection(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
-		w.Write([]byte("Daemon not ready"))
-		return
 	}
 
 	w.WriteHeader(http.StatusOK)
