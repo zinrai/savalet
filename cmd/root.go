@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	version = "1.0.0" // Set during build with -ldflags
+	version = "0.2.0" // Set during build with -ldflags
 )
 
 var rootCmd = &cobra.Command{
