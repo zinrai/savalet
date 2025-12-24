@@ -1,6 +1,6 @@
-# Sevalet
+# Savalet
 
-Sevalet (Server valet) is a command execution service that exposes system commands through HTTP API, providing a alternative to SSH-based system integration.
+Savalet (Server valet) is a command execution service that exposes system commands through HTTP API, providing a alternative to SSH-based system integration.
 
 ## Motivation
 
@@ -11,7 +11,7 @@ SSH-based system integration, while simple to implement initially, often becomes
 - Complex error handling in distributed systems
 - Tight coupling between systems
 
-Sevalet solves these problems by providing:
+Savalet solves these problems by providing:
 
 - **HTTP API interface**: Standard REST API for command execution
 - **Container-friendly architecture**: API server can run in containers while maintaining host command access
@@ -19,7 +19,7 @@ Sevalet solves these problems by providing:
 
 ## Architecture
 
-Sevalet uses a two-tier architecture:
+Savalet uses a two-tier architecture:
 
 ```mermaid
 graph TB
@@ -29,7 +29,7 @@ graph TB
     
     subgraph "Host System"
         Daemon[Daemon<br/>Unix Socket]
-        Socket[Socket: sevalet.sock]
+        Socket[Socket: savalet.sock]
         Cmd[System Commands]
     end
     
@@ -74,7 +74,7 @@ This separation ensures that even if the API layer is compromised, attackers can
 ## Installation
 
 ```bash
-$ go install github.com/zinrai/sevalet@latest
+$ go install github.com/zinrai/savalet@latest
 ```
 
 ## Configuration
@@ -89,19 +89,19 @@ $ go install github.com/zinrai/sevalet@latest
 Run with default config
 
 ```bash
-$ sevalet daemon
+$ savalet daemon
 ```
 
 Run with custom config and debug logging
 
 ```bash
-$ sevalet daemon --config /path/to/daemon.yaml --log-level debug
+$ savalet daemon --config /path/to/daemon.yaml --log-level debug
 ```
 
 Run with custom socket path
 
 ```bash
-$ sevalet daemon --socket /tmp/sevalet.sock
+$ savalet daemon --socket /tmp/savalet.sock
 ```
 
 ### Running the API Server
@@ -109,13 +109,13 @@ $ sevalet daemon --socket /tmp/sevalet.sock
 Run with default config
 
 ```bash
-$ sevalet api
+$ savalet api
 ```
 
 Run with custom settings
 
 ```bash
-$ sevalet api --listen :9090 --socket /var/run/sevalet.sock
+$ savalet api --listen :9090 --socket /var/run/savalet.sock
 ```
 
 ### API Endpoints

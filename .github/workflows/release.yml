@@ -24,12 +24,12 @@ jobs:
           cache: true
 
       - name: Build for Linux (amd64)
-        run: GOOS=linux GOARCH=amd64 go build -o sevalet-linux-amd64
+        run: GOOS=linux GOARCH=amd64 go build -o savalet-linux-amd64
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            sevalet-linux-amd64
+            savalet-linux-amd64
           generate_release_notes: true

@@ -3,7 +3,7 @@ package validator
 import (
 	"fmt"
 
-	"github.com/zinrai/sevalet/internal/models"
+	"github.com/zinrai/savalet/internal/models"
 )
 
 // ValidateCommand verifies if the command and arguments are allowed

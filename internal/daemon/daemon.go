@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"syscall"
 
-	"github.com/zinrai/sevalet/internal/config"
-	grpcsrv "github.com/zinrai/sevalet/internal/grpc"
-	"github.com/zinrai/sevalet/pb"
+	"github.com/zinrai/savalet/internal/config"
+	grpcsrv "github.com/zinrai/savalet/internal/grpc"
+	"github.com/zinrai/savalet/pb"
 	"google.golang.org/grpc"
 )
 

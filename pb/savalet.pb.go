@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.7
 // 	protoc        v3.21.12
-// source: sevalet.proto
+// source: savalet.proto
 
 package pb
 
@@ -32,7 +32,7 @@ type ExecuteRequest struct {
 
 func (x *ExecuteRequest) Reset() {
 	*x = ExecuteRequest{}
-	mi := &file_sevalet_proto_msgTypes[0]
+	mi := &file_savalet_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *ExecuteRequest) String() string {
 func (*ExecuteRequest) ProtoMessage() {}
 
 func (x *ExecuteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_sevalet_proto_msgTypes[0]
+	mi := &file_savalet_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *ExecuteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteRequest) Descriptor() ([]byte, []int) {
-	return file_sevalet_proto_rawDescGZIP(), []int{0}
+	return file_savalet_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ExecuteRequest) GetCommand() string {
@@ -95,7 +95,7 @@ type ExecuteResponse struct {
 
 func (x *ExecuteResponse) Reset() {
 	*x = ExecuteResponse{}
-	mi := &file_sevalet_proto_msgTypes[1]
+	mi := &file_savalet_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -107,7 +107,7 @@ func (x *ExecuteResponse) String() string {
 func (*ExecuteResponse) ProtoMessage() {}
 
 func (x *ExecuteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_sevalet_proto_msgTypes[1]
+	mi := &file_savalet_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -120,7 +120,7 @@ func (x *ExecuteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteResponse) Descriptor() ([]byte, []int) {
-	return file_sevalet_proto_rawDescGZIP(), []int{1}
+	return file_savalet_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ExecuteResponse) GetSuccess() bool {
@@ -165,11 +165,11 @@ func (x *ExecuteResponse) GetErrorMessage() string {
 	return ""
 }
 
-var File_sevalet_proto protoreflect.FileDescriptor
+var File_savalet_proto protoreflect.FileDescriptor
 
-const file_sevalet_proto_rawDesc = "" +
+const file_savalet_proto_rawDesc = "" +
 	"\n" +
-	"\rsevalet.proto\x12\asevalet\"X\n" +
+	"\rsavalet.proto\x12\asavalet\"X\n" +
 	"\x0eExecuteRequest\x12\x18\n" +
 	"\acommand\x18\x01 \x01(\tR\acommand\x12\x12\n" +
 	"\x04args\x18\x02 \x03(\tR\x04args\x12\x18\n" +
@@ -182,28 +182,28 @@ const file_sevalet_proto_rawDesc = "" +
 	"\x0eexecution_time\x18\x05 \x01(\tR\rexecutionTime\x12#\n" +
 	"\rerror_message\x18\x06 \x01(\tR\ferrorMessage2O\n" +
 	"\x0fCommandExecutor\x12<\n" +
-	"\aExecute\x12\x17.sevalet.ExecuteRequest\x1a\x18.sevalet.ExecuteResponseB\x06Z\x04./pbb\x06proto3"
+	"\aExecute\x12\x17.savalet.ExecuteRequest\x1a\x18.savalet.ExecuteResponseB\x06Z\x04./pbb\x06proto3"
 
 var (
-	file_sevalet_proto_rawDescOnce sync.Once
-	file_sevalet_proto_rawDescData []byte
+	file_savalet_proto_rawDescOnce sync.Once
+	file_savalet_proto_rawDescData []byte
 )
 
-func file_sevalet_proto_rawDescGZIP() []byte {
-	file_sevalet_proto_rawDescOnce.Do(func() {
-		file_sevalet_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_sevalet_proto_rawDesc), len(file_sevalet_proto_rawDesc)))
+func file_savalet_proto_rawDescGZIP() []byte {
+	file_savalet_proto_rawDescOnce.Do(func() {
+		file_savalet_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_savalet_proto_rawDesc), len(file_savalet_proto_rawDesc)))
 	})
-	return file_sevalet_proto_rawDescData
+	return file_savalet_proto_rawDescData
 }
 
-var file_sevalet_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_sevalet_proto_goTypes = []any{
-	(*ExecuteRequest)(nil),  // 0: sevalet.ExecuteRequest
-	(*ExecuteResponse)(nil), // 1: sevalet.ExecuteResponse
+var file_savalet_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_savalet_proto_goTypes = []any{
+	(*ExecuteRequest)(nil),  // 0: savalet.ExecuteRequest
+	(*ExecuteResponse)(nil), // 1: savalet.ExecuteResponse
 }
-var file_sevalet_proto_depIdxs = []int32{
-	0, // 0: sevalet.CommandExecutor.Execute:input_type -> sevalet.ExecuteRequest
-	1, // 1: sevalet.CommandExecutor.Execute:output_type -> sevalet.ExecuteResponse
+var file_savalet_proto_depIdxs = []int32{
+	0, // 0: savalet.CommandExecutor.Execute:input_type -> savalet.ExecuteRequest
+	1, // 1: savalet.CommandExecutor.Execute:output_type -> savalet.ExecuteResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -211,26 +211,26 @@ var file_sevalet_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_sevalet_proto_init() }
-func file_sevalet_proto_init() {
-	if File_sevalet_proto != nil {
+func init() { file_savalet_proto_init() }
+func file_savalet_proto_init() {
+	if File_savalet_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sevalet_proto_rawDesc), len(file_sevalet_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_savalet_proto_rawDesc), len(file_savalet_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_sevalet_proto_goTypes,
-		DependencyIndexes: file_sevalet_proto_depIdxs,
-		MessageInfos:      file_sevalet_proto_msgTypes,
+		GoTypes:           file_savalet_proto_goTypes,
+		DependencyIndexes: file_savalet_proto_depIdxs,
+		MessageInfos:      file_savalet_proto_msgTypes,
 	}.Build()
-	File_sevalet_proto = out.File
-	file_sevalet_proto_goTypes = nil
-	file_sevalet_proto_depIdxs = nil
+	File_savalet_proto = out.File
+	file_savalet_proto_goTypes = nil
+	file_savalet_proto_depIdxs = nil
 }

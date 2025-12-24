@@ -1,4 +1,4 @@
-module github.com/zinrai/sevalet
+module github.com/zinrai/savalet
 
 go 1.24.0
 

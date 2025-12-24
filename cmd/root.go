@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	version = "0.2.0" // Set during build with -ldflags
+	version = "0.1.0" // Set during build with -ldflags
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "sevalet",
+	Use:   "savalet",
 	Short: "Secure command execution service",
-	Long: `Sevalet is a secure command execution service that provides controlled
+	Long: `Savalet is a secure command execution service that provides controlled
 access to system commands via HTTP API or direct daemon mode.`,
 	Version: version,
 }

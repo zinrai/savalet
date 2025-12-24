@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/zinrai/sevalet/pb"
+	"github.com/zinrai/savalet/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

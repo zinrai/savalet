@@ -1,8 +1,8 @@
-# Sevalet Daemon Configuration
+# Savalet Daemon Configuration
 
 # Unix domain socket settings
-#socket_path: /var/run/sevalet.sock
-socket_path: /tmp/sevalet.sock
+#socket_path: /var/run/savalet.sock
+socket_path: /tmp/savalet.sock
 socket_permissions: "0660"
 
 # Execution limits

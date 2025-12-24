@@ -1,10 +1,10 @@
 .PHONY: all build clean test proto docker help
 
 # Variables
-BINARY_NAME=sevalet
+BINARY_NAME=savalet
 VERSION=$(shell git describe --tags --always --dirty)
-LDFLAGS=-ldflags "-w -s -X 'github.com/zinrai/sevalet/cmd.version=$(VERSION)'"
-PROTO_FILES=sevalet.proto
+LDFLAGS=-ldflags "-w -s -X 'github.com/zinrai/savalet/cmd.version=$(VERSION)'"
+PROTO_FILES=savalet.proto
 
 # Default target
 all: proto build
@@ -41,7 +41,7 @@ clean:
 
 # Build Docker image
 docker:
-	docker build -t sevalet:latest .
+	docker build -t savalet:latest .
 
 # Development targets
 run-daemon:

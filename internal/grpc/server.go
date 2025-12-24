@@ -6,11 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/zinrai/sevalet/internal/config"
-	"github.com/zinrai/sevalet/internal/executor"
-	"github.com/zinrai/sevalet/internal/models"
-	"github.com/zinrai/sevalet/internal/validator"
-	"github.com/zinrai/sevalet/pb"
+	"github.com/zinrai/savalet/internal/config"
+	"github.com/zinrai/savalet/internal/executor"
+	"github.com/zinrai/savalet/internal/models"
+	"github.com/zinrai/savalet/internal/validator"
+	"github.com/zinrai/savalet/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

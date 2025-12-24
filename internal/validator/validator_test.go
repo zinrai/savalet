@@ -3,7 +3,7 @@ package validator
 import (
 	"testing"
 
-	"github.com/zinrai/sevalet/internal/models"
+	"github.com/zinrai/savalet/internal/models"
 )
 
 func TestValidateCommand(t *testing.T) {

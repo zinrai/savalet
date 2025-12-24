@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/zinrai/sevalet/internal/api"
-	"github.com/zinrai/sevalet/internal/config"
+	"github.com/zinrai/savalet/internal/api"
+	"github.com/zinrai/savalet/internal/config"
 )
 
 var (
@@ -21,16 +21,16 @@ var (
 var apiCmd = &cobra.Command{
 	Use:   "api",
 	Short: "Start HTTP API server",
-	Long: `Start the sevalet API server that receives HTTP requests and forwards them
+	Long: `Start the savalet API server that receives HTTP requests and forwards them
 to the mediator daemon via Unix domain socket.`,
-	Example: `  sevalet api --listen :8080 --socket /var/run/sevalet.sock
-  sevalet api --config /etc/sevalet/api.yaml`,
+	Example: `  savalet api --listen :8080 --socket /var/run/savalet.sock
+  savalet api --config /etc/savalet/api.yaml`,
 	PreRunE: validateAPIFlags,
 	RunE:    runAPI,
 }
 
 func init() {
-	apiCmd.Flags().StringVarP(&apiConfigFile, "config", "c", "/etc/sevalet/api.yaml", "Configuration file path")
+	apiCmd.Flags().StringVarP(&apiConfigFile, "config", "c", "/etc/savalet/api.yaml", "Configuration file path")
 	apiCmd.Flags().StringVarP(&apiSocketPath, "socket", "s", "", "Unix domain socket path to connect to daemon (overrides config)")
 	apiCmd.Flags().StringVarP(&apiListenAddr, "listen", "l", "", "HTTP listen address (overrides config)")
 	apiCmd.Flags().IntVarP(&apiTimeout, "timeout", "t", 30, "Default request timeout in seconds")
@@ -77,7 +77,7 @@ func runAPI(cmd *cobra.Command, args []string) error {
 		// Use default configuration
 		cfg = &config.APIConfig{
 			ListenAddress:  ":8080",
-			SocketPath:     "/var/run/sevalet.sock",
+			SocketPath:     "/var/run/savalet.sock",
 			RequestTimeout: 30,
 		}
 	}
@@ -94,7 +94,7 @@ func runAPI(cmd *cobra.Command, args []string) error {
 	}
 	cfg.LogLevel = apiLogLevel
 
-	log.Printf("Starting sevalet API server (version: %s)", version)
+	log.Printf("Starting savalet API server (version: %s)", version)
 	log.Printf("Listen address: %s", cfg.ListenAddress)
 	log.Printf("Socket path: %s", cfg.SocketPath)
 	log.Printf("Default timeout: %d seconds", cfg.RequestTimeout)

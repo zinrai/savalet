@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zinrai/sevalet/internal/config"
-	grpcclient "github.com/zinrai/sevalet/internal/grpc"
-	"github.com/zinrai/sevalet/internal/models"
+	"github.com/zinrai/savalet/internal/config"
+	grpcclient "github.com/zinrai/savalet/internal/grpc"
+	"github.com/zinrai/savalet/internal/models"
 )
 
 // Server represents the HTTP API server

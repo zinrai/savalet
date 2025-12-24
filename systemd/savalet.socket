@@ -1,0 +1,17 @@
+[Unit]
+Description=Savalet Unix Domain Socket
+Documentation=https://github.com/zinrai/savalet
+
+[Socket]
+ListenStream=/var/run/savalet.sock
+SocketMode=0660
+SocketUser=savalet
+SocketGroup=savalet
+
+# Socket options
+Accept=false
+Backlog=128
+MaxConnections=64
+
+[Install]
+WantedBy=sockets.target

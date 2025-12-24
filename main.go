@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/zinrai/sevalet/cmd"
+	"github.com/zinrai/savalet/cmd"
 )
 
 func main() {

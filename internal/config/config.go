@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zinrai/sevalet/internal/models"
+	"github.com/zinrai/savalet/internal/models"
 	"gopkg.in/yaml.v3"
 )
 
@@ -41,7 +41,7 @@ func LoadDaemonConfig(path string) (*DaemonConfig, error) {
 
 	// Set defaults
 	if config.SocketPath == "" {
-		config.SocketPath = "/var/run/sevalet.sock"
+		config.SocketPath = "/var/run/savalet.sock"
 	}
 	if config.SocketPermissions == "" {
 		config.SocketPermissions = "0660"
@@ -78,7 +78,7 @@ func LoadAPIConfig(path string) (*APIConfig, error) {
 		config.ListenAddress = ":8080"
 	}
 	if config.SocketPath == "" {
-		config.SocketPath = "/var/run/sevalet.sock"
+		config.SocketPath = "/var/run/savalet.sock"
 	}
 	if config.RequestTimeout <= 0 {
 		config.RequestTimeout = 60

@@ -1,11 +1,11 @@
 [Unit]
-Description=Sevalet Command Execution Daemon
-Documentation=https://github.com/zinrai/sevalet
+Description=Savalet Command Execution Daemon
+Documentation=https://github.com/zinrai/savalet
 After=network.target
 
 [Service]
 Type=notify
-ExecStart=/usr/local/bin/sevalet daemon --config /etc/sevalet/daemon.yaml
+ExecStart=/usr/local/bin/savalet daemon --config /etc/savalet/daemon.yaml
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=mixed
 KillSignal=SIGTERM
@@ -13,14 +13,14 @@ Restart=on-failure
 RestartSec=5s
 
 # Security settings
-User=sevalet
-Group=sevalet
+User=savalet
+Group=savalet
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/run
-ReadOnlyPaths=/etc/sevalet
+ReadOnlyPaths=/etc/savalet
 
 # Resource limits
 LimitNOFILE=4096
@@ -29,7 +29,7 @@ TasksMax=128
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=sevalet
+SyslogIdentifier=savalet
 
 [Install]
 WantedBy=multi-user.target
