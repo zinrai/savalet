@@ -26,13 +26,13 @@ graph TB
     subgraph "Docker Container"
         API[API Server<br/>:8080]
     end
-    
+
     subgraph "Host System"
         Daemon[Daemon<br/>Unix Socket]
         Socket[Socket: savalet.sock]
         Cmd[System Commands]
     end
-    
+
     Client[HTTP Client] -->|HTTP Request| API
     API -->|gRPC over Unix Domain Socket| Socket
     Socket --> Daemon
@@ -41,7 +41,7 @@ graph TB
     Daemon -->|gRPC Response| Socket
     Socket --> API
     API -->|HTTP Response| Client
-    
+
     style API fill:#e1f5d1
     style Daemon fill:#ffe1e1
     style Socket fill:#fff4e1
@@ -79,43 +79,21 @@ $ go install github.com/zinrai/savalet@latest
 
 ## Configuration
 
-- Daemon Configuration (`configs/daemon.yaml`)
-- API Configuration (`configs/api.yaml`)
+- Daemon Configuration (`example/daemon.yaml`)
+- API Configuration (`example/api.yaml`)
 
 ## Usage
 
 ### Running the Daemon
 
-Run with default config
-
 ```bash
-$ savalet daemon
-```
-
-Run with custom config and debug logging
-
-```bash
-$ savalet daemon --config /path/to/daemon.yaml --log-level debug
-```
-
-Run with custom socket path
-
-```bash
-$ savalet daemon --socket /tmp/savalet.sock
+$ savalet daemon -config example/daemon.yaml
 ```
 
 ### Running the API Server
 
-Run with default config
-
 ```bash
-$ savalet api
-```
-
-Run with custom settings
-
-```bash
-$ savalet api --listen :9090 --socket /var/run/savalet.sock
+$ savalet api -config example/api.yaml
 ```
 
 ### API Endpoints
@@ -123,25 +101,20 @@ $ savalet api --listen :9090 --socket /var/run/savalet.sock
 Execute Command:
 
 ```bash
-$ curl -X POST http://localhost:8080/execute \
-    -H "Content-Type: application/json" \
-    -d '{
-      "command": "systemctl",
-      "args": ["restart", "nginx"],
-      "timeout": 30
-    }'
+$ curl -X POST http://localhost:9090/execute \
+    -d '{"command":"uptime","args":[],"timeout":10}'
 ```
 
 Health Check:
 
 ```bash
-$ curl http://localhost:8080/health
+$ curl http://localhost:9090/health
 ```
 
 Readiness Check:
 
 ```bash
-$ curl http://localhost:8080/ready
+$ curl http://localhost:9090/ready
 ```
 
 ## Use Cases
@@ -159,27 +132,6 @@ $ curl http://localhost:8080/ready
 - **No Command Enumeration**: The API does not expose available commands, reducing information disclosure
 - **Unix Domain Socket**: Local-only communication between API and daemon with file permission controls
 - **Audit Logging**: All command executions are logged with full details for compliance and troubleshooting
-
-## Running Locally
-
-Terminal 1: Start daemon
-
-```bash
-$ make run-daemon
-```
-
-Terminal 2: Start API server
-
-```bash
-$ make run-api
-```
-
-Terminal 3: Test request
-
-```bash
-$ curl -X POST http://localhost:8080/execute \
-    -d '{"command":"uptime","args":[],"timeout":10}'
-```
 
 ## License
 

@@ -1,10 +1,9 @@
 # Savalet API Configuration
 
 # HTTP server settings
-listen_address: :8080
+listen_address: :9090
 
 # Unix domain socket to connect to daemon
-#socket_path: /var/run/savalet.sock
 socket_path: /tmp/savalet.sock
 
 # Request timeout in seconds

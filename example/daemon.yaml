@@ -1,7 +1,6 @@
 # Savalet Daemon Configuration
 
 # Unix domain socket settings
-#socket_path: /var/run/savalet.sock
 socket_path: /tmp/savalet.sock
 socket_permissions: "0660"
 
@@ -11,70 +10,11 @@ default_timeout: 30      # Default timeout if not specified in request
 
 # Allowed commands and their arguments
 commands:
-  - name: ls
-    description: "List directory contents"
-    allowed_args:
-      - "-l"
-      - "-a"
-      - "-h"
-      - "-la"
-      - "/tmp"
-      - "/var/log"
-      - "/etc"
-
   - name: cat
     description: "Display file contents"
     allowed_args:
-      - "/var/log/syslog"
-      - "/var/log/nginx/access.log"
-      - "/var/log/nginx/error.log"
       - "/etc/hostname"
       - "/etc/os-release"
-
-  - name: systemctl
-    description: "System service management"
-    allowed_args:
-      - "status"
-      - "restart"
-      - "stop"
-      - "start"
-      - "nginx"
-      - "redis"
-      - "mysql"
-      - "postgresql"
-      - "docker"
-
-  - name: docker
-    description: "Docker container management"
-    allowed_args:
-      - "ps"
-      - "logs"
-      - "restart"
-      - "stop"
-      - "start"
-      - "-a"
-      - "--tail"
-      - "10"
-      - "50"
-      - "100"
-      - "web"
-      - "api"
-      - "db"
-      - "cache"
-
-  - name: tail
-    description: "Display end of file"
-    allowed_args:
-      - "-n"
-      - "10"
-      - "20"
-      - "50"
-      - "100"
-      - "-f"
-      - "/var/log/syslog"
-      - "/var/log/nginx/access.log"
-      - "/var/log/nginx/error.log"
-      - "/var/log/auth.log"
 
   - name: date
     description: "Show current date and time"
