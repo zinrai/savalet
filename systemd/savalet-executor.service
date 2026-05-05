@@ -1,0 +1,35 @@
+[Unit]
+Description=Savalet Command Executor
+Documentation=https://github.com/zinrai/savalet
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/savalet executor --config /etc/savalet/executor.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+Restart=on-failure
+RestartSec=5s
+
+# Security settings
+User=savalet
+Group=savalet
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/run
+ReadOnlyPaths=/etc/savalet
+
+# Resource limits
+LimitNOFILE=4096
+TasksMax=128
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=savalet-executor
+
+[Install]
+WantedBy=multi-user.target

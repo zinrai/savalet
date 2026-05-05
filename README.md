@@ -28,30 +28,30 @@ graph TB
     end
 
     subgraph "Host System"
-        Daemon[Daemon<br/>Unix Socket]
+        Executor[Executor<br/>Unix Socket]
         Socket[Socket: savalet.sock]
         Cmd[System Commands]
     end
 
     Client[HTTP Client] -->|HTTP Request| API
-    API -->|gRPC over Unix Domain Socket| Socket
-    Socket --> Daemon
-    Daemon -->|Validate & Execute| Cmd
-    Cmd -->|Result| Daemon
-    Daemon -->|gRPC Response| Socket
+    API -->|HTTP over Unix Domain Socket| Socket
+    Socket --> Executor
+    Executor -->|Validate & Execute| Cmd
+    Cmd -->|Result| Executor
+    Executor -->|HTTP Response| Socket
     Socket --> API
     API -->|HTTP Response| Client
 
     style API fill:#e1f5d1
-    style Daemon fill:#ffe1e1
+    style Executor fill:#ffe1e1
     style Socket fill:#fff4e1
 ```
 
 **Key Components:**
 
-- **API Mode**: Runs in a Docker container without privileges, forwards HTTP requests to daemon
-- **Daemon Mode**: Runs on the host system, validates and executes commands
-- **Unix Domain Socket**: Local communication channel between API and daemon
+- **API Mode**: Runs in a Docker container without privileges, forwards HTTP requests to the executor
+- **Executor Mode**: Runs on the host system, validates and executes commands
+- **Unix Domain Socket**: Local communication channel between API and executor
 
 This separation ensures that even if the API layer is compromised, attackers cannot directly execute commands on the host.
 
@@ -60,16 +60,15 @@ This separation ensures that even if the API layer is compromised, attackers can
 - **HTTP API for command execution**: RESTful interface for system integration
 - **Container-compatible architecture**: Deploy API in containers while executing commands on host
 - **Strict allow-list validation**: Only pre-configured commands and arguments can be executed
-- **gRPC over Unix domain socket**: Efficient local communication between components
+- **HTTP over Unix domain socket**: Standard, debuggable local communication between components
 - **Structured JSON logging**: Comprehensive audit trail for all operations
 - **Timeout enforcement**: Prevent runaway processes
 - **Health check endpoints**: Integration with container orchestrators
 
 ## Prerequisites
 
-- Protocol Buffers compiler (protoc)
-- Docker (for container deployment)
-- systemd (for daemon mode)
+- Go 1.24 or later (for building from source)
+- systemd (optional, for service management; example unit files in `systemd/`)
 
 ## Installation
 
@@ -79,15 +78,15 @@ $ go install github.com/zinrai/savalet@latest
 
 ## Configuration
 
-- Daemon Configuration (`example/daemon.yaml`)
+- Executor Configuration (`example/executor.yaml`)
 - API Configuration (`example/api.yaml`)
 
 ## Usage
 
-### Running the Daemon
+### Running the Executor
 
 ```bash
-$ savalet daemon -config example/daemon.yaml
+$ savalet executor -config example/executor.yaml
 ```
 
 ### Running the API Server
@@ -115,6 +114,15 @@ Readiness Check:
 
 ```bash
 $ curl http://localhost:9090/ready
+```
+
+The executor itself can also be probed directly over the Unix domain socket, which is useful for diagnostics:
+
+```bash
+$ curl --unix-socket /var/run/savalet.sock http://executor/health
+$ curl --unix-socket /var/run/savalet.sock http://executor/execute \
+    -X POST -H "Content-Type: application/json" \
+    -d '{"command":"uptime","args":[],"timeout":10}'
 ```
 
 ## Use Cases

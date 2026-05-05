@@ -12,47 +12,33 @@ import (
 	"time"
 
 	"github.com/zinrai/savalet/internal/config"
-	grpcclient "github.com/zinrai/savalet/internal/grpc"
 	"github.com/zinrai/savalet/internal/models"
 )
 
 // Server represents the HTTP API server
 type Server struct {
-	config     *config.APIConfig
-	httpServer *http.Server
-	grpcClient *grpcclient.Client
+	config         *config.APIConfig
+	httpServer     *http.Server
+	executorClient *ExecutorClient
 }
 
 // New creates a new API server instance
 func New(config *config.APIConfig) *Server {
 	return &Server{
-		config: config,
+		config:         config,
+		executorClient: NewExecutorClient(config.SocketPath),
 	}
 }
 
 // Start starts the API server
 func (s *Server) Start() error {
-	// Connect to daemon via Unix domain socket
-	grpcClient, err := grpcclient.NewClient(s.config.SocketPath)
-	if err != nil {
-		log.Printf("WARNING: Cannot connect to daemon at %s: %v", s.config.SocketPath, err)
-		log.Printf("API server will start, but requests will fail until daemon is available")
-		// Don't fail here, allow API to start
-	} else {
-		log.Printf("Successfully connected to daemon at %s", s.config.SocketPath)
-		s.grpcClient = grpcClient
-	}
-
-	// Setup HTTP routes
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", s.healthHandler)
 	mux.HandleFunc("/ready", s.readyHandler)
 	mux.HandleFunc("/execute", s.executeHandler)
 
-	// Wrap with logging middleware
 	handler := s.loggingMiddleware(mux)
 
-	// Create HTTP server
 	s.httpServer = &http.Server{
 		Addr:           s.config.ListenAddress,
 		Handler:        handler,
@@ -61,11 +47,9 @@ func (s *Server) Start() error {
 		MaxHeaderBytes: 1 << 20, // 1MB
 	}
 
-	// Setup signal handling
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// Start server in goroutine
 	errChan := make(chan error, 1)
 	go func() {
 		log.Printf("API server listening on %s", s.config.ListenAddress)
@@ -74,7 +58,6 @@ func (s *Server) Start() error {
 		}
 	}()
 
-	// Wait for signal or error
 	select {
 	case sig := <-sigChan:
 		log.Printf("Received signal: %v", sig)
@@ -91,16 +74,12 @@ func (s *Server) Shutdown() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Shutdown HTTP server
 	if err := s.httpServer.Shutdown(ctx); err != nil {
 		log.Printf("Error shutting down HTTP server: %v", err)
 	}
 
-	// Close gRPC client
-	if s.grpcClient != nil {
-		if err := s.grpcClient.Close(); err != nil {
-			log.Printf("Error closing gRPC client: %v", err)
-		}
+	if s.executorClient != nil {
+		s.executorClient.Close()
 	}
 
 	log.Println("API server shutdown complete")
@@ -125,16 +104,13 @@ func (s *Server) readyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if we have a gRPC client
-	if s.grpcClient == nil {
-		// Try to reconnect
-		grpcClient, err := grpcclient.NewClient(s.config.SocketPath)
-		if err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			w.Write([]byte("Daemon connection failed"))
-			return
-		}
-		s.grpcClient = grpcClient
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	if err := s.executorClient.Health(ctx); err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte("Executor unreachable"))
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -148,62 +124,29 @@ func (s *Server) executeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check body size
 	r.Body = http.MaxBytesReader(w, r.Body, int64(s.config.MaxBodySize))
 
-	// Parse request
 	request, err := models.NewExecuteRequestFromJSON(r.Body)
 	if err != nil {
 		s.respondWithError(w, http.StatusBadRequest, "Invalid request format")
 		return
 	}
 
-	// Basic validation
 	if err := request.Validate(); err != nil {
 		s.respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Ensure we have a gRPC connection
-	if s.grpcClient == nil {
-		grpcClient, err := grpcclient.NewClient(s.config.SocketPath)
-		if err != nil {
-			s.respondWithError(w, http.StatusServiceUnavailable, "Daemon connection failed")
-			return
-		}
-		s.grpcClient = grpcClient
-	}
-
-	// Forward to daemon
-	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(request.Timeout)*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(request.Timeout+5)*time.Second)
 	defer cancel()
 
-	resp, err := s.grpcClient.Execute(ctx, request.Command, request.Args, request.Timeout)
+	resp, status, err := s.executorClient.Execute(ctx, request)
 	if err != nil {
-		s.respondWithError(w, http.StatusServiceUnavailable, "Failed to execute command")
+		s.respondWithError(w, http.StatusServiceUnavailable, "Failed to reach executor")
 		return
 	}
 
-	// Build HTTP response
-	httpResp := models.HTTPResponse{
-		Success:       resp.Success,
-		ExitCode:      int(resp.ExitCode),
-		Stdout:        resp.Stdout,
-		Stderr:        resp.Stderr,
-		ExecutionTime: resp.ExecutionTime,
-	}
-
-	if !resp.Success {
-		// Simplify error message for security
-		if resp.ErrorMessage == "command not allowed" || resp.ErrorMessage == "argument not allowed" {
-			httpResp.Error = resp.ErrorMessage
-		} else {
-			httpResp.Error = "Command execution failed"
-		}
-	}
-
-	// Send response
-	s.respondWithJSON(w, http.StatusOK, httpResp)
+	s.respondWithJSON(w, status, resp)
 }
 
 // respondWithJSON sends a JSON response
@@ -233,16 +176,13 @@ func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		// Wrap ResponseWriter to capture status code
 		wrapped := &responseWriter{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,
 		}
 
-		// Process request
 		next.ServeHTTP(wrapped, r)
 
-		// Log request
 		latency := time.Since(start)
 		logEntry := models.LogEntry{
 			Timestamp:  time.Now().UTC().Format(time.RFC3339),
@@ -279,7 +219,6 @@ func (s *Server) logJSON(entry models.LogEntry) {
 		return
 	}
 
-	// Check log level
 	switch entry.Level {
 	case "debug":
 		if s.config.LogLevel != "debug" {

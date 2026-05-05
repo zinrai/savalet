@@ -1,73 +1,101 @@
 package executor
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os/exec"
-	"strings"
+	"log"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
 	"time"
+
+	"github.com/zinrai/savalet/internal/config"
 )
 
-// Result contains the result of command execution
-type Result struct {
-	ExitCode      int
-	Stdout        string
-	Stderr        string
-	ExecutionTime string
-	Error         error
+// Executor hosts the command-running process behind a Unix domain socket.
+type Executor struct {
+	config     *config.ExecutorConfig
+	httpServer *http.Server
+	listener   net.Listener
 }
 
-// ExecuteCommand executes the specified command with timeout
-func ExecuteCommand(ctx context.Context, command string, args []string, timeout int) *Result {
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
+// New creates a new Executor instance.
+func New(config *config.ExecutorConfig) *Executor {
+	return &Executor{config: config}
+}
+
+// Start binds the Unix domain socket and serves HTTP requests until a signal is received.
+func (e *Executor) Start() error {
+	if err := os.Remove(e.config.SocketPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove existing socket: %w", err)
+	}
+
+	listener, err := net.Listen("unix", e.config.SocketPath)
+	if err != nil {
+		return fmt.Errorf("failed to listen on socket: %w", err)
+	}
+	e.listener = listener
+
+	if e.config.SocketPermissions != "" {
+		mode, err := strconv.ParseUint(e.config.SocketPermissions, 8, 32)
+		if err != nil {
+			return fmt.Errorf("invalid socket permissions: %w", err)
+		}
+		if err := os.Chmod(e.config.SocketPath, os.FileMode(mode)); err != nil {
+			return fmt.Errorf("failed to set socket permissions: %w", err)
+		}
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", e.healthHandler)
+	mux.HandleFunc("/execute", e.executeHandler)
+
+	e.httpServer = &http.Server{
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout:      time.Duration(e.config.MaxExecutionTime+10) * time.Second,
+	}
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	errChan := make(chan error, 1)
+	go func() {
+		log.Printf("Executor listening on %s", e.config.SocketPath)
+		if err := e.httpServer.Serve(listener); err != nil && err != http.ErrServerClosed {
+			errChan <- err
+		}
+	}()
+
+	select {
+	case sig := <-sigChan:
+		log.Printf("Received signal: %v", sig)
+		return e.Shutdown()
+	case err := <-errChan:
+		return fmt.Errorf("HTTP server error: %w", err)
+	}
+}
+
+// Shutdown gracefully stops the Executor.
+func (e *Executor) Shutdown() error {
+	log.Println("Shutting down executor...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Create command
-	cmd := exec.CommandContext(ctx, command, args...)
-
-	// Create buffers for stdout and stderr
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	// Start time measurement
-	startTime := time.Now()
-
-	// Execute command
-	err := cmd.Run()
-
-	// Calculate execution time
-	executionTime := time.Since(startTime).String()
-
-	// Create result
-	result := &Result{
-		Stdout:        strings.TrimSpace(stdout.String()),
-		Stderr:        strings.TrimSpace(stderr.String()),
-		ExecutionTime: executionTime,
-	}
-
-	// Handle errors and exit codes
-	if err != nil {
-		// Check for timeout
-		if ctx.Err() == context.DeadlineExceeded {
-			result.Error = fmt.Errorf("command execution timed out")
-			result.ExitCode = -1 // Special code for timeout
-		} else if exitErr, ok := err.(*exec.ExitError); ok {
-			// Command executed but returned non-zero exit code
-			result.ExitCode = exitErr.ExitCode()
-			// Don't set error for non-zero exit codes
-			// as this is a normal execution result
-		} else {
-			// Other execution errors
-			result.Error = fmt.Errorf("command execution failed: %w", err)
-			result.ExitCode = -2 // Special code for general errors
+	if e.httpServer != nil {
+		if err := e.httpServer.Shutdown(ctx); err != nil {
+			log.Printf("Error shutting down HTTP server: %v", err)
 		}
-	} else {
-		// Success
-		result.ExitCode = 0
 	}
 
-	return result
+	if err := os.Remove(e.config.SocketPath); err != nil && !os.IsNotExist(err) {
+		log.Printf("Error removing socket file: %v", err)
+	}
+
+	log.Println("Executor shutdown complete")
+	return nil
 }

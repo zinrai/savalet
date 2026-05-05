@@ -8,8 +8,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// DaemonConfig represents the daemon mode configuration
-type DaemonConfig struct {
+// ExecutorConfig represents the executor mode configuration
+type ExecutorConfig struct {
 	SocketPath        string             `yaml:"socket_path"`
 	SocketPermissions string             `yaml:"socket_permissions"`
 	MaxExecutionTime  int                `yaml:"max_execution_time"`
@@ -27,14 +27,14 @@ type APIConfig struct {
 	LogLevel       string `yaml:"-"` // Set via command line only
 }
 
-// LoadDaemonConfig loads the daemon configuration from a YAML file
-func LoadDaemonConfig(path string) (*DaemonConfig, error) {
+// LoadExecutorConfig loads the executor configuration from a YAML file
+func LoadExecutorConfig(path string) (*ExecutorConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var config DaemonConfig
+	var config ExecutorConfig
 	if err := yaml.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}

@@ -1,4 +1,4 @@
-# Savalet Daemon Configuration
+# Savalet Executor Configuration
 
 # Unix domain socket settings
 socket_path: /tmp/savalet.sock

@@ -1,25 +1,26 @@
 [Unit]
-Description=Savalet Command Execution Daemon
+Description=Savalet HTTP API
 Documentation=https://github.com/zinrai/savalet
-After=network.target
+After=network.target savalet-executor.service
+Wants=savalet-executor.service
 
 [Service]
-Type=notify
-ExecStart=/usr/local/bin/savalet daemon --config /etc/savalet/daemon.yaml
+Type=simple
+ExecStart=/usr/local/bin/savalet api --config /etc/savalet/api.yaml
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=mixed
 KillSignal=SIGTERM
 Restart=on-failure
 RestartSec=5s
 
-# Security settings
-User=savalet
-Group=savalet
+# Security settings: run as ephemeral user, join the savalet group
+# so the API process can connect to the executor's Unix domain socket.
+DynamicUser=yes
+SupplementaryGroups=savalet
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/var/run
 ReadOnlyPaths=/etc/savalet
 
 # Resource limits
@@ -29,7 +30,7 @@ TasksMax=128
 # Logging
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=savalet
+SyslogIdentifier=savalet-api
 
 [Install]
 WantedBy=multi-user.target
