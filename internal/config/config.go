@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/goccy/go-yaml"
 	"github.com/zinrai/savalet/internal/models"
-	"gopkg.in/yaml.v3"
 )
 
 // ExecutorConfig represents the executor mode configuration
