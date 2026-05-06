@@ -11,8 +11,6 @@ import (
 	"github.com/zinrai/savalet/internal/executor"
 )
 
-var version = "0.1.0"
-
 func main() {
 	if len(os.Args) < 2 {
 		printUsage()
@@ -27,7 +25,7 @@ func main() {
 	case "help":
 		printUsage()
 	case "version":
-		fmt.Printf("savalet version %s\n", version)
+		printVersion()
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command: %s\n\n", os.Args[1])
 		printUsage()
