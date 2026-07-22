@@ -70,12 +70,6 @@ This separation ensures that even if the API layer is compromised, attackers can
 - Go 1.24 or later (for building from source)
 - systemd (optional, for service management; example unit files in `systemd/`)
 
-## Installation
-
-```bash
-$ go install github.com/zinrai/savalet@latest
-```
-
 ## Configuration
 
 - Executor Configuration (`example/executor.yaml`)
