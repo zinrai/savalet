@@ -1,0 +1,41 @@
+# Example savalet configuration.
+#
+# Validate on the target host with:
+#   savalet check -config example/savalet.yaml
+
+# Listen address. The unix: prefix selects a Unix domain socket, anything
+# else is a TCP address. Ignored under systemd socket activation.
+listen: unix:/run/savalet/savalet.sock
+
+# Upper bound in bytes for stdout and stderr of a single command, applied
+# to each stream separately.
+max_output_bytes: 1048576
+
+# Upper bound for every action's timeout, in seconds.
+max_timeout: 60
+
+# Header set by the front proxy, recorded in the audit log as-is. Savalet
+# does not verify it, because authentication belongs to the proxy.
+identity_header: X-Forwarded-User
+
+actions:
+  - name: uptime
+    description: "Show system uptime"
+    argv: ["/usr/bin/uptime"]
+    timeout: 5
+
+  - name: disk-usage
+    description: "Show disk usage of a mountpoint"
+    argv: ["/usr/bin/df", "-h", "{mountpoint}"]
+    params:
+      mountpoint:
+        enum: ["/", "/var", "/srv"]
+    timeout: 10
+
+  - name: restart-service
+    description: "Restart a managed service"
+    argv: ["/usr/bin/systemctl", "restart", "{service}"]
+    params:
+      service:
+        enum: [nginx, postgresql]
+    timeout: 60

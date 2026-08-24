@@ -1,0 +1,15 @@
+[Unit]
+Description=Savalet listen socket
+
+[Socket]
+# Connections queue in this socket's backlog while the service restarts,
+# so a configuration change is applied by restart. There is no reload.
+ListenStream=/run/savalet/savalet.sock
+SocketMode=0660
+SocketUser=savalet
+# Membership in this group is the entire access boundary. Every member
+# can invoke every configured action.
+SocketGroup=savalet-clients
+
+[Install]
+WantedBy=sockets.target

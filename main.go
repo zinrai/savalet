@@ -1,14 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"log"
 	"os"
-
-	"github.com/zinrai/savalet/internal/api"
-	"github.com/zinrai/savalet/internal/config"
-	"github.com/zinrai/savalet/internal/executor"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -16,16 +14,18 @@ func main() {
 		printUsage()
 		os.Exit(1)
 	}
-
 	switch os.Args[1] {
-	case "api":
-		runAPI(os.Args[2:])
-	case "executor":
-		runExecutor(os.Args[2:])
-	case "help":
-		printUsage()
+	case "run":
+		if err := cmdRun(os.Args[2:]); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	case "check":
+		os.Exit(cmdCheck(os.Args[2:]))
 	case "version":
 		printVersion()
+	case "help":
+		printUsage()
 	default:
 		fmt.Fprintf(os.Stderr, "Error: unknown command: %s\n\n", os.Args[1])
 		printUsage()
@@ -34,92 +34,74 @@ func main() {
 }
 
 func printUsage() {
-	fmt.Printf(`savalet - Secure command execution service
-
-Savalet is a secure command execution service that provides controlled
-access to system commands via HTTP API.
+	fmt.Printf(`savalet - HTTP front door to a fixed set of local commands
 
 Usage:
   savalet <command> [options]
 
 Commands:
-  api       Start HTTP API server
-  executor  Start command executor
-  help      Show this help message
-  version   Show version information
+  run      Start the server
+  check    Validate a configuration file
+  help     Show this help message
+  version  Show version information
 
 Examples:
-  savalet api -config /etc/savalet/api.yaml
-  savalet executor -config /etc/savalet/executor.yaml
+  savalet run -config /etc/savalet/savalet.yaml
+  savalet check -config /etc/savalet/savalet.yaml
 
 Use "savalet <command> -h" for more information about a command.
 `)
 }
 
-func runAPI(args []string) {
-	fs := flag.NewFlagSet("api", flag.ExitOnError)
-	configPath := fs.String("config", "/etc/savalet/api.yaml", "Configuration file path")
+func cmdRun(args []string) error {
+	fs := flag.NewFlagSet("run", flag.ExitOnError)
+	configPath := fs.String("config", defaultConfigPath, "Configuration file path")
+	fs.Parse(args)
 
-	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Start the savalet API server
-
-Usage:
-  savalet api [options]
-
-Options:
-`)
-		fs.PrintDefaults()
-	}
-
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
-
-	cfg, err := config.LoadAPIConfig(*configPath)
+	cfg, err := LoadConfig(*configPath)
 	if err != nil {
-		log.Fatalf("Error: failed to load configuration: %v", err)
+		return err
 	}
 
-	log.Printf("Starting savalet API server (version: %s)", version)
-	log.Printf("Listen address: %s", cfg.ListenAddress)
-	log.Printf("Socket path: %s", cfg.SocketPath)
-	log.Printf("Request timeout: %d seconds", cfg.RequestTimeout)
+	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
-	apiServer := api.New(cfg)
-	if err := apiServer.Start(); err != nil {
-		log.Fatalf("Error: %v", err)
+	l, err := listen(cfg)
+	if err != nil {
+		return err
 	}
+
+	logger := newAuditLogger(os.Stdout)
+	logger.Info("config_loaded",
+		"path", *configPath,
+		"sha256", cfg.fileSHA256,
+		"actions", len(cfg.Actions),
+	)
+
+	s := &server{cfg: cfg, logger: logger, rootCtx: rootCtx}
+	err = s.serve(l)
+	logger.Info("shutdown")
+	return err
 }
 
-func runExecutor(args []string) {
-	fs := flag.NewFlagSet("executor", flag.ExitOnError)
-	configPath := fs.String("config", "/etc/savalet/executor.yaml", "Configuration file path")
+// The executable check on argv[0] binds validation to the host, so check
+// cannot stand in for a CI side lint: it belongs on the deploy target,
+// typically as the validate step of a configuration push.
+func cmdCheck(args []string) int {
+	fs := flag.NewFlagSet("check", flag.ExitOnError)
+	configPath := fs.String("config", defaultConfigPath, "Configuration file path")
+	fs.Parse(args)
 
-	fs.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Start the savalet executor
-
-Usage:
-  savalet executor [options]
-
-Options:
-`)
-		fs.PrintDefaults()
-	}
-
-	if err := fs.Parse(args); err != nil {
-		os.Exit(1)
-	}
-
-	cfg, err := config.LoadExecutorConfig(*configPath)
+	data, err := os.ReadFile(*configPath)
 	if err != nil {
-		log.Fatalf("Error: failed to load configuration: %v", err)
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		return 2
 	}
-
-	log.Printf("Starting savalet executor (version: %s)", version)
-	log.Printf("Socket path: %s", cfg.SocketPath)
-
-	e := executor.New(cfg)
-	if err := e.Start(); err != nil {
-		log.Fatalf("Error: %v", err)
+	cfg, err := parseConfig(data)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", *configPath, err)
+		return 1
 	}
+	fmt.Printf("OK: %d actions\n", len(cfg.Actions))
+	return 0
 }
